@@ -10,6 +10,8 @@
 \linespread{1.2}
 \newcommand{\code}{\texttt}
 \usepackage{csquotes}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 
 \begin{document}
 \subsection*{Q1.}
@@ -73,7 +75,40 @@ An avl tree is a self balancing binary search tree that has the property that, f
      \(dp[i]\) is the length of the LDS of \(P_i\) and the last element of the LDS is \((r_i, h_i)\)
 \end{itemize}
  
-\paragraph{(b)}
+\paragraph{(b)} Let \(P\) denote the input sequence \([(r_1,h_1), (r_2,h_2), \hdots, (r_n,h_n)]\). We access the \(i^{th}\) element (box size) in \(P\) by \(P[i]\), and access \(r_i\) by \(P[i].r\) and  \(h_i\) by \(P[i].h\)
+\begin{algorithm}
+     \caption{Longest Strictly Decreasing Sequence(\(P\))}
+     \begin{algorithmic}[1]
+     \State let \(dp[1..n]\) be an empty array \Comment{\(dp[i]\) stores the length of LDS with \(P[i]\) as the last element}
+     \State let \(prev[1..n]\) be an empty array \Comment{\(prev[i]\) stores the index of the previous element of \(P[i]\)}
+     \For {\(i = 1\) to \(n\)}
+          \State \(dp[i] = 1\)
+          \State \(prev[i] = i\)
+          \For {\(k = 1\) to \(i-1\)}
+               \If{\(P[k].r > P[i].r\) \textbf{and} \(P[k].h > P[i].h\) \textbf{and} \(1 + dp[k] > dp[i]\)}
+                    \State \(dp[i] = 1 + dp[k]\)
+                    \State \(prev[i] = k\)
+               \EndIf
+          \EndFor
+     \EndFor
+     \State int \(l = 0\)
+     \State int \(idx\) 
+     \For{\(i = 1\) to \(n\)}
+          \If {\(dp[i] > l\)}
+               \State \(l = dp[i]\) \Comment{\(l\) will store the length of LDS(\(P\))}
+               \State \(idx = i\) \Comment{\(idx\) is the index of the last element in the LDS(\(P\))}
+          \EndIf
+     \EndFor
+     \State let \(O[1..l]\) be the output sequence
+     \While {\(idx \neq prev[idx]\)}
+          \State \(O[l] = P[idx]\)
+          \State \(idx = prev[idx]\)
+          \State \(l = l - 1\)
+     \EndWhile
+     \State \(O[l] = P[idx]\)
+     \State \Return \(O\)
+     \end{algorithmic}
+\end{algorithm}
 
-
+\paragraph{(c).} Time complexity is \(O(n^2)\)
 \end{document}
