@@ -50,12 +50,12 @@ An avl tree is a self balancing binary search tree that has the property that, f
 
 \subsection*{Q5.}
 \paragraph{(a).}
-\textbf{Sub-problems:} We use slightly different sub-problems. We find the longest strictly decreasing sequence(LDS) of the prefixes of the original sequence, where the LDS is ended with the last element(box size) of the prefix. We also find the length of such LDS. The solution to the original problem would be the longest sequence among all solutions to the sub-problems.\\
+\textbf{Sub-problems:} We use slightly different sub-problems. We find the longest strictly decreasing sequence(LDS) of the prefixes of the original sequence, where the LDS is ended with the last element(box size) of the prefix. We also find the length of such LDS. A solution to the original problem would be a longest sequence among all solutions to the sub-problems.\\
 \textbf{Relation between sub-problems:}
 \begin{itemize}
      \setlength \itemsep{0em} 
      \item On LDS:\\
-     Suppose \(P_i = [(r_1,h_1), (r_2, h_2), \hdots, (r_i, h_i)]\) is the input sequence, then a LDS of \(P_i\) which ends with the element \((r_i, h_i)\), denoted as LDS(\(P_i\)), is a longest sequence among \(S_k\) for \textbf{all} \(k \in [1, i-1]\) where
+     Suppose \(P_i = [(r_1,h_1), (r_2, h_2), \hdots, (r_i, h_i)]\) is the input sequence, then a LDS that ends with the element \((r_i, h_i)\), is built from a LDS that ends with \((r_k, h_k)\) for \(k \in [1, i-1]\) where \(r_k > r_i\) and \(h_k > h_i\). There could be multiple \(k\)'s that form the longest subsequence. As formula, LDS(\(P_i = \text{longest}([(r_i, h_i)], \underset{\substack{k \in [1, i-1] \\ r_k > r_i \land h_k > h_i}}{\text{longest}}(\text{LDS(\(P_k\))} + [(r_i, h_i)])\)) is a longest sequence among \(S_k\) for \textbf{all} \(k \in [1, i-1]\) where
      \begin{equation*}
           S_{k \in [1, i-1]} = 
           \begin{cases}
@@ -75,9 +75,9 @@ An avl tree is a self balancing binary search tree that has the property that, f
      \(dp[i]\) is the length of the LDS of \(P_i\) and the last element of the LDS is \((r_i, h_i)\)
 \end{itemize}
  
-\paragraph{(b)} Let \(P\) denote the input sequence \([(r_1,h_1), (r_2,h_2), \hdots, (r_n,h_n)]\). We access the \(i^{th}\) element (box size) in \(P\) by \(P[i]\), and access \(r_i\) by \(P[i].r\) and  \(h_i\) by \(P[i].h\)
+\paragraph{(b)} Let \(P\) denote the input sequence \([(r_1,h_1), (r_2,h_2), \hdots, (r_n,h_n)]\). In the following psuedocode, we access the \(i^{th}\) element (box size) in \(P\) by \(P[i]\), and access \(r_i\) by \(P[i].r\) and  \(h_i\) by \(P[i].h\).
 \begin{algorithm}
-     \caption{Longest Strictly Decreasing Sequence(\(P\))}
+     \caption{Bottom-up Longest Strictly Decreasing Sequence(\(P\))}
      \begin{algorithmic}[1]
      \State let \(dp[1..n]\) be an empty array \Comment{\(dp[i]\) stores the length of LDS with \(P[i]\) as the last element}
      \State let \(prev[1..n]\) be an empty array \Comment{\(prev[i]\) stores the index of the previous element of \(P[i]\)}
@@ -110,5 +110,5 @@ An avl tree is a self balancing binary search tree that has the property that, f
      \end{algorithmic}
 \end{algorithm}
 
-\paragraph{(c).} Time complexity is \(O(n^2)\)
+\paragraph{(c).} Time complexity is \(O(n^2)\). The computation of length of LDS is at line \(3-12\), we have two for loops. The outer loop iterates through each element of the original sequence,
 \end{document}
