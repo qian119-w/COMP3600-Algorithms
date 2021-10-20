@@ -31,8 +31,6 @@ int main(int argc, char *argv[]) {
 		pair<int,int> dp[n+1][F+1];
 		bool solExists;
 		int totFundDistributed;
-	//	vector<int> selProposals;
-	//	vector<int> reqFund; 
 		int selProposals[n];
 		int reqFund[n];
 
