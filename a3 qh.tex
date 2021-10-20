@@ -12,6 +12,7 @@
 \usepackage{csquotes}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{algorithmicx}
 
 \begin{document}
 \subsection*{Q1.}
@@ -106,5 +107,43 @@ An avl tree is a self balancing binary search tree that has the property that, f
 
 
 \subsection*{Q6.}
-\paragraph{(a).}
+\paragraph{(a).} Suppose \(k_i\) is the number of proposals for the \(i^{th}\) approach, and \(m_{ij}\) is the funding requested for the \(j^{th}\) proposal for the \(i^{th}\) approach, where \(j \in [1, k_i]\). We would use a \(dp\) table to store the choices of proposals. In the following psuedocode, entry \(dp[i][j]\) is a pair of values \(\langle x,y\rangle\) where \(x\) is one funding sum (potentially out of multiple possibilities) requested by the previous (\(i-1\)) approaches, given that all \(i\) approaches request the exact funding sum \(j\), and the second value \(y\) is the corresponding index of the proposal for the \(i^{th}\) approach that suffices the condition for the value \(x\). If there is no set of proposals for the first \(i\) approaches that have the exact funding sum \(j\), \(dp[i][j]\) would be \(\langle 0,0\rangle\). The reason for keeping the fund sum of the previous \((i-1)\) proposals is to back trace the selected proposals at the end.
+\begin{algorithm}[H]
+     \caption{Set of proposals (n, F, m)}
+     \begin{algorithmic}[1]
+          \State let \(dp[1..n][1..F]\) be an empty table \Comment{assume all entries are initialized to \(\langle 0,0\rangle\)}
+          \For {\(j = 1\) to \(k_1\)}
+               \State \(dp[1][m_{1j}] = \langle 0,j \rangle\) \Comment{initialize the pair for the first approach}
+          \EndFor
+          \For {\(i = 1\) to \(n-1\)}
+               \For {\(j=1\) to \(F\)}
+                    \If {\(dp[i][j] \neq \langle 0,0 \rangle\)}
+                         \For {\(y = 1\) to \(k_{i+1}\)}
+                              \If {\(j + m_{(i+1)y} < F\)}
+                                   \State \(dp[i+1][j+m_{(i+1)y}] = \langle j,y \rangle\)
+                              \EndIf
+                         \EndFor
+                    \EndIf
+               \EndFor
+          \EndFor
+          \State let \(seqProposals[1..n]\) be the indices of the selected proposals
+          \State let \(reqFund[1..n]\) be the fund requested by the selected proposals
+          \State let \(totalFund\) be the total fund distributed
+          \For {\(j = F\) to \(1\)}
+               \If {\(dp[n][j] \neq \langle 0,0 \rangle\)} \Comment{check the last row for the maximum fund distributed}
+                    \State \(totalFund = j\)
+                    \State \(sum = j\)
+                    \For {\(i = n\) to \(1\)} \Comment{back trace the sequence}
+                         \State \(seqProposals[i] = dp[i][sum].second\)
+                         \State \(reqFund[i] = m_{i(seqProposals[i])}\)
+                         \State \(sum = dp[i][sum].first\)
+                    \EndFor
+                    \State \textbf{break}
+               \EndIf
+          \EndFor
+          \State \Return \(totalFund\), \(seqProposals\), \(reqFund\)
+     \end{algorithmic}
+\end{algorithm}
+\paragraph{(b).} Time complexity is \(O(F \times \sum_{i=1}^{n} k_i)\)
+
 \end{document}

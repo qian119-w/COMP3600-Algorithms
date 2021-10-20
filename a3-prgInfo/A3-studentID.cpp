@@ -78,13 +78,6 @@ int main(int argc, char *argv[]) {
 
 		auto end = chrono::high_resolution_clock::now();
 		auto duration = chrono::duration_cast<std::chrono::microseconds>(end-start);
-
-
-		// Place your algorithm here
-		// If you need to create a function, place the function above the main function
-		// If there's a solution (i.e., solExists == True), the results of your algorithm 
-		//		should be placed in variables totFundDistributed, selProposals, and reqFund
-		
 		// Print output
 		if (solExists) {
 			cout << totFundDistributed << " ";
