@@ -11,6 +11,7 @@ int main(int argc, char *argv[]) {
     } 
     else { 
 		// Read input
+		auto start = chrono::high_resolution_clock::now();
 		ifstream inFile(argv[1]);
 		int F, n;
 		inFile >> F >> n;
@@ -27,7 +28,6 @@ int main(int argc, char *argv[]) {
 		}
 		inFile.close();
 
-		auto start = chrono::high_resolution_clock::now();
 		pair<int,int> dp[n+1][F+1];
 		bool solExists;
 		int totFundDistributed;
