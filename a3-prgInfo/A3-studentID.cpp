@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
 		for (int i = 1; i <=n; i++){
 			dp[i] = new pair<int,int>[F+1];
 		}
-	//	pair<int,int> dp[n+1][F+1];
+
 		bool solExists;
 		int totFundDistributed;
 		int selProposals[n];
@@ -70,11 +70,10 @@ int main(int argc, char *argv[]) {
 				break;
 			}
 		}
-		//delete the inner arrays
+		//delete the inner & outer arrays
 		for (int i=0; i<= n; i++){
       		delete[] dp[i];
 		}
-		//delete the outer array that contains the pointers of all the inner arrays
 		delete[] dp;
 
 		auto end = chrono::high_resolution_clock::now();
