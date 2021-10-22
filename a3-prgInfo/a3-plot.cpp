@@ -5,14 +5,10 @@
 
 using namespace std;
 
-int main(int argc, char *argv[]) {
-    if (argc < 2) {
-        std::cout << "Please supply the name of the input file\n";
-    } 
-    else { 
+float a3(string filename) {
 		// Read input
 		auto start = chrono::high_resolution_clock::now();
-		ifstream inFile(argv[1]);
+		ifstream inFile(filename);
 		int F, n;
 		inFile >> F >> n;
 		int K[n+1];
@@ -52,6 +48,7 @@ int main(int argc, char *argv[]) {
 						}
 					}
 				}
+
 			}
 		}
 		for (int j=F; j>0; j--){
@@ -93,7 +90,6 @@ int main(int argc, char *argv[]) {
 		}
 		cout << "\n";
 		cout << " takes " << duration.count()*0.001 << " millisec" <<"\n"; 
-    }
 
-    return 0;
+    return duration.count()*0.001;
 }
