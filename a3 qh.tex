@@ -146,4 +146,11 @@ An avl tree is a self balancing binary search tree that has the property that, f
 \paragraph{(b).} Time complexity is \(O(F \times \sum_{i=1}^{n} k_i)\). In line \(5-15\), there are \(3\) for loops. The for loop at line \(5\) and for loop at line \(8\) sums to be \(\sum_{i=1}^{n-1} k_{i+1} = \sum_{i=2}^{n} k_{i} = O(\sum_{i=1}^{n} k_{i})\). This is then multiplied by \(F\) because of the for loop at line \(6\). The loop body is constant time operation, so line \(5-15\) is \(O(F \times \sum_{i=1}^{n} k_i))\). The initialization cost at line \(2-3\) costs another \(O(k_1)\) operations, and to output the final set of proposals at line \(19-30\), we have to traverse the last row of the dp table, which would at most iterate \(F\) times if there is no solution. If there is a solution, then we have another \(O(n)\) operations to trace backwards the sequence of proposals. Hence, in sum there should be \(O(F \times \sum_{i=1}^{n} k_i) + O(k_1) + O(F) + O(n)\), which is dominated by \(O(F \times \sum_{i=1}^{n} k_i)\). Notice that if we also count the initialization cost at line \(1\), which is \(O(n \times F)\) as the dimension of the table is \(n \times F\), in the end we still get \(O(F \times \sum_{i=1}^{n} k_i)\) as the time complexity since \(n \leq \sum_{i=1}^{n} k_i)\).
 
 \paragraph{(d).}
+Empirical analysis:
+\begin{figure}[H]
+     \centering
+     \includegraphics[width = \textwidth]{q6d.png}
+\end{figure}
+\noindent This plotted graph is based on a data set of 100 samples. We observe a linear relationship between the time taken in \(ms\), and the number  (\(F \times \sum_{i=1}^n k_i\)). The best fit line has a \(R^2\) coefficient of \(0.975\), which means that the linear model fits the data set well. Hence, we could conclude that the time complexity of the algorithm is some constant times \(F \times \sum_{i=1}^n k_i\), and hence there is \(c, n_0 > 0\) such that \(T(n) \leq c(F\times \sum_{i=1}^n k_i)\) for all \(n \geq n_0\). Time complexiy is therefore \(O(F \times \sum_{i=1}^n k_i)\) and the empirical analysis matches with our theoretical analysis. 
+
 \end{document}
