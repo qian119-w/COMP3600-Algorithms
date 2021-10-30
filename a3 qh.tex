@@ -89,7 +89,7 @@ Let \(E\) denote the set of all direct flights between cities and \((u,v) \in E\
 \end{algorithm}
 
 \paragraph{(c).}
-Time complexity is \(O(|VE|)\). Line \(1\text{-}3\) initializes all vertices, and this takes \(O(|V|)\) time. The outer \textbf{for} loop of line \(5\text{-}9\) iterates \(|V|-1\) times. The nested \textbf{for} loop of line \(6\text{-}9\) iterates \(|E|\) times per pass. So the total complexity of the loops is \(O(|VE|)\). To retrieve the final output, the \textbf{while} loop iterates at most \(|V|\) times. Hence the overall complexity is \(O(|V|)\) + \(O(|VE|)\) + \(O(|V|)\) = \(O(|VE|)\). Since there are direct flights between any two cities, \(|E| = O(|V|^2)\). Also \(|V| = n\), time complexity is therefore \(O(n^3)\).
+Time complexity is \(O(|VE|)\). Line \(1\text{-}3\) initializes all vertices, and this takes \(O(|V|)\) time. The outer \textbf{for} loop of line \(5\text{-}9\) iterates \(|V|-1\) times. The nested \textbf{for} loop of line \(6\text{-}9\) iterates \(|E|\) times per pass. So the total complexity of the loops is \(O(|VE|)\). To retrieve the final output, the \textbf{while} loop iterates at most \(|V|\) times. Hence the overall complexity is \(O(|V|)\) + \(O(|VE|)\) + \(O(|V|)\) = \(O(|VE|)\). Since there could be direct flights between any two cities, \(|E| = O(|V|^2)\). Also \(|V| = n\), time complexity is therefore \(O(n^3)\).
 
 \subsection*{Q5.}
 \paragraph{(a).}
