@@ -53,16 +53,16 @@ An avl tree is a self balancing binary search tree that has the property that, f
 
 \subsection*{Q5.}
 \paragraph{(a).}
-First, we simplify the problem into a longest decreasing subsequence (LDS) problem by sorting. We sort based on the first parameter, i.e. radius, in the descending order. This ensures that we could choose a longest decreasing sequence out of the original unsorted \(n\) boxes, by simply finding the LDS of the sorted sequence. Note that here we cannot solve the LDS based on height purely, since in the case where radius are the same and height are in the descending order, we might mistakenly contribute boxes of the same radius to the LDS. We could avoid this by also sorting based on height, in the ascending order, for the boxes of the same radius, and then find the LDS based on height only; or we could just compare both radius and height as we find the LDS without performing sort on height. In the following algorithm, I will choose the second approach.
+First, we simplify the problem into a longest decreasing subsequence (LDS) problem by sorting. We sort based on the first parameter, i.e. radius, in the descending order. This ensures that we could choose a longest decreasing sequence out of the original unsorted \(n\) boxes, by simply finding the LDS of the sorted sequence. Note that here we cannot solve the LDS based on height purely, since in the case where radius are the same and height are in the descending order, we might mistakenly contribute boxes of the same radius to the LDS. We could avoid this by also sorting based on height, in the ascending order, for the boxes of the same radius, and then find the LDS based on height only.
 Now we can find the LDS by dynamic programming. \\
 \textbf{Sub-problems:} The sub-problems are LDS of the prefixes of the sorted sequence, and the LDS is ended with the last element of the prefix. We also find the length of such LDS. A solution to the original problem would be a longest sequence among all solutions to the sub-problems.\\
 \textbf{Relation between sub-problems:}
 \begin{itemize}
      \setlength \itemsep{0em} 
      \item On LDS:\\
-     Suppose \(P_i = \langle(r_1,h_1), (r_2, h_2), \hdots, (r_i, h_i)\rangle\) is the sequence that is sorted based on \(r\), then a LDS that ends with the element \((r_i, h_i)\), is built from a LDS that ends with \((r_k, h_k)\) for \(k \in [1, i-1]\) where \(r_k > r_i\) and \(h_k > h_i\). There could be multiple \(k\)'s that form the LDS of \(P_i\). Or if such \(k\) does not exist, then the LDS is \(\langle(r_i, h_i)\rangle\). Expressed as a formula, 
+     Suppose \(P_i = \langle(r_1,h_1), (r_2, h_2), \hdots, (r_i, h_i)\rangle\) is the sequence that is sorted as described above, then a LDS that ends with the element \((r_i, h_i)\), is built from a LDS that ends with \((r_k, h_k)\) for \(k \in [1, i-1]\) where \(h_k > h_i\). There could be multiple \(k\)'s that form the LDS of \(P_i\). Or if such \(k\) does not exist, then the LDS is \(\langle(r_i, h_i)\rangle\). Expressed as a formula, 
      \begin{equation*}
-          \text{LDS(\(P_i\))} = \text{longest}(\langle(r_i, h_i)\rangle, \underset{\substack{k \in [1, i-1] \\ r_k > r_i\ \land\ h_k > h_i}}{\text{longest}}(\text{LDS(\(P_k\))} + \langle(r_i, h_i)\rangle)
+          \text{LDS(\(P_i\))} = \text{longest}(\langle(r_i, h_i)\rangle, \underset{\substack{k \in [1, i-1] \\ h_k > h_i}}{\text{longest}}(\text{LDS(\(P_k\))} + \langle(r_i, h_i)\rangle)
      \end{equation*}
    Here \('+'\) is the concatenation of two sequences, and \(P_k\) is the slice \(P_i\)[\(1 .. k\)].
      \item On the length of LDS:
@@ -70,7 +70,7 @@ Now we can find the LDS by dynamic programming. \\
           dp[i] = 
           \begin{cases}
                1 & i = 1 \\
-               \max (1, \displaystyle\max_{\substack{k \in [1, i-1] \\ r_k > r_i\ \land\ h_k > h_i}}(1 + dp[k])) & i > 1
+               \max (1, \displaystyle\max_{\substack{k \in [1, i-1] \\  h_k > h_i}}(1 + dp[k])) & i > 1
           \end{cases}
      \end{equation*}
      \(dp[i]\) is the length of the LDS of \(P_i\) and the last element of the LDS is \((r_i, h_i)\)
@@ -87,8 +87,7 @@ Now we can find the LDS by dynamic programming. \\
           \State \(dp[i] = 1\)
           \State \(prev[i] = i\) \Comment{prev of the first element is set to be itself}
           \For {\(k = 1\) to \(i-1\)}
-               \If{\(P_{sorted}[k].r > P_{sorted}[i].r\) \textbf{and} \(P_{sorted}[k].h > P_{sorted}[i].h\) \textbf{and} \(1 + dp[k] > dp[i]\)} 
-               \\ \Comment{compare \(r\) to avoid counting boxes of the same radius}
+               \If{\(P_{sorted}[k].h > P_{sorted}[i].h\) \textbf{and} \(1 + dp[k] > dp[i]\)} 
                     \State \(dp[i] = 1 + dp[k]\)
                     \State \(prev[i] = k\)
                \EndIf
@@ -127,10 +126,18 @@ Now we can find the LDS by dynamic programming. \\
           \State \(L[n_1+1] = \infty\); \(R[n_2+1] = \infty\)
           \State \(i = 1\); \(j = 1\)
           \For {\(k = p\) to \(r\)}
-               \If {\(L[i].r \geq R[i].r\)} \Comment{\textbf{modification here}}
+               \If {\(L[i].r > R[i].r\)} \Comment{\textbf{modification from here onwards}}
                     \State \(P[k] = L[i]\)
                     \State \(i = i + 1\)
-               \Else 
+               \ElsIf {\(L[i].r = R[i].r\)}
+                    \If {\(L[i].h \leq R[i].h\)}
+                         \State \(P[k] = L[i]\)
+                         \State \(i = i + 1\)
+                    \Else 
+                         \State \(P[k] = R[i]\)
+                         \State \(j = j + 1\)
+                    \EndIf
+               \Else
                     \State \(P[k] = R[i]\)
                     \State \(j = j + 1\)
                \EndIf
