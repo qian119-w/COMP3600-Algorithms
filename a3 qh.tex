@@ -11,8 +11,7 @@
 \newcommand{\code}{\texttt}
 \usepackage{csquotes}
 \usepackage{algorithm}
-\usepackage{algpseudocode}
-\usepackage{algorithmicx}
+\usepackage[noend]{algpseudocode}
 
 \begin{document}
 \subsection*{Q1.}
@@ -21,7 +20,7 @@ Since we use simple uniform hashing, the average number of elements that hash to
 \paragraph{(a).} Given that we use sorted arrays as the chaining components for the hash table:\\ On average, the time complexity for search would be \(O(1+\log(\alpha))\),  Here, \(O(1)\) is the time taken to compute \(h(k)\), and \(O(\log(\alpha))\) is the time to search for the key inside the array at slot \(h(k)\). We achieve logarithmic runtime as we could perform binary search on the sorted array, since arrays allow random access. However, if \(\alpha\) is very small, we would not have much benefit from the usual way of using linked list as the chaining component (runtime being \(O(1+\alpha)\)). But in the case that \(n \gg m\), then the runtime would improve.
 
 \paragraph{(b).} Given that we need to run a merge sort every time we insert an element:\\
-On average, the time complexity for insertion would be \(O(1+\alpha\log(\alpha))\), where \(O(1)\) is the time to compute \(h(k)\), and \(O(\alpha\log(\alpha))\) is the time to perform the merge sort on the array at slot \(h(k)\). If we do not keep track of the current number of elements in the array, then we also have an additional cost of \(O(\alpha)\) to search to the end for an empty spot, otherwise it would just take \(O(1)\) time to append. Yet in the end, the insertion time would be worse than the original scheme of using linked lists, as it only costs \(O(1)\) time to add the key to the front of the linked list.
+On average, the time complexity for insertion would be \(O(1+\alpha\log(\alpha))\), where \(O(1)\) is the time to compute \(h(k)\), and \(O(\alpha\log(\alpha))\) is the time to perform the merge sort on the array at slot \(h(k)\). If we do not keep track of the current number of elements in the array, then we also have an additional cost of \(O(\alpha)\) to search to the end for an empty spot, otherwise it would just take \(O(1)\) time to append. Yet in the end, the insertion time would be worse than the original scheme of using linked lists, with which it only costs \(O(1)\) time to prepend the key.
 
 \paragraph{(c).} Deletion with sorted arrays would remain the same as using linked lists, i.e. \(O(1 +\alpha)\). \(O(1)\) is the time to compute \(h(k)\), and \(O(\alpha)\) is the total cost for deletion. To delete, we first need to search for the key, so it takes \(O(\log(\alpha))\) to perform binary search, then remove the key by shifting all elements greater than the deleted key one slot to the left. In the worst case, the deleted key is the first element, so we need to shift all the remaining elements, which is \(O(\alpha)\). Since \(O(\log(\alpha)) \in O(\alpha)\), we have the overall cost for search-delete-shift as \(O(\alpha)\). With linked lists, deletion is also \(O(\alpha)\). We need to traverse the list to search for the previous element of the target, then change its pointer to the next (\(O(1)\)), and free memory for the target(\(O(1)\)). In the worst case, the target is the last element, so we require \(O(\alpha)\).
 
@@ -50,12 +49,53 @@ Hence, it is not a red black tree in this case.
 An avl tree is a self balancing binary search tree that has the property that, for any node \(x\) in the tree, \(x\) has at most two children, and \(x.left.key \leq x.key \leq x.right.key\). Although for an avl tree, we might need rotation for insertion and deletion operations in order to maintain the balance factor, we still guarantee that the bst property holds. So the node with the minimum key is the left-most node in the tree. We could find it by traversing down the tree from the root, and always choosing the left subtree to traverse, until we find the left subtree to be nil, then the current node contains the minimum key. Similarly, the node with the maximum key is the right-most node in the tree. Beginning from the root, we always traverse the right subtree, until the right subtree is nil, then the current node contains the maximum key. 
 
 \subsection*{Q4.}
+\paragraph{(a).} Yes, we can solve it by dynamic programming.\\ 
+Since the flat fee \(C\) remains constant for any sequence, we can just focus on the cost sum of flights in the sequence. The problem is therefore reduced to the normal SSSP problem.\\
+\textbf{Sub-problems:} cheapest sequence to travel from city-\(i\) to city-\(x\) using at most \(k\) hops where \(k \in [1, n-1]\) and \(x \in [1, n]\), \(x \neq i\). We have to search the cheapest sequence for all cities despite that the problem only asks for the case when destination is city-\(n\). This is because the subsequence of a cheapest sequence to city-\(n\) is also a cheapest sequence on its own.
+
+\pagebreak
+\noindent \textbf{Relation between sub-problems:}\\
+Let \(E\) denote the set of all direct flights between cities and \((u,v) \in E\) if there is a direct flight from city-\(u\) to city-\(v\). Let \(d_k(i,u)\) denote the lowest cost from city-\(i\) to city-\(u\) using at most \(k\) hops. \(P(u,v)\) is the cost of the direct flight from \(u\) to \(v\).
+\begin{equation*}
+     d_k(i,v) = \underset{(u,v) \in E}{\min} (d_{k-1}(i,u)+ P(u,v))
+\end{equation*}
+\paragraph{(b).} We use a bottom up approach to find the cheaptest sequence and its cost. To do so, we first represent the problem by constructing a graph \(G\). Each city is a vertex, and we draw a directed edge \((u,v)\) if there is a direct flight from city-\(u\) to city-\(v\). The cost function is \(P\) that takes two cities as input and return the price of the flight. The source city is \(s\), and the destination city in the sequence we look for is \(d\). We maintain the cheapest cost to travel from source \(s\) to vertex \(v\) by \(v.c\) and the precedessor of vertex \(v\) by \(v.\pi\). The underlying algorithm is the Bellman-Ford algorithm. To find the solution to the original problem, we would call Cheapest Sequence (\(G,P,i,n\)).
+\begin{algorithm}[H]
+     \caption{Cheapest Sequence (\(G, P, s, d\))} 
+     \begin{algorithmic}[1]
+          \For {each vertex \(v \in G.V\)}
+               \State \(v.c = \infty\)
+               \State \(v.\pi = \text{Nil}\)
+          \EndFor
+          \State \(s.c = 0\) \Comment{initialize source}
+          \For {\(i = 1\) to \(|G.V| - 1\)}
+               \For {each edge \((u,v) \in G.E\)}
+                    \If {\(v.c > u.c + P(u,v)\)}
+                         \State \(v.c = u.c + P(u,v)\)
+                         \State \(v.\pi = u\)
+                    \EndIf
+               \EndFor
+          \EndFor
+          \State Find the vertex \(x\) that represents city-\(d\)
+          \State \(v = x\) \Comment{we are going to trace the sequence backwards}
+          \State Declare an empty linked list \(L\) \Comment{used to output the cheapest sequence}
+          \While {\(v.\pi \neq \text{Nil}\)} \Comment{loop terminates when \(v=s\), since \(s.\pi = \text{Nil}\)}
+               \State prepend (\(L, v\))
+               \State \(v = v.\pi\)
+          \EndWhile
+          \State prepend (\(L, s\))
+          \State \textbf{Return} \(L\)
+     \end{algorithmic}
+\end{algorithm}
+
+\paragraph{(c).}
+Time complexity is \(O(|VE|)\). Line \(1\text{-}3\) initializes all vertices, and this takes \(O(|V|)\) time. The outer \textbf{for} loop of line \(5\text{-}9\) iterates \(|V|-1\) times. The nested \textbf{for} loop of line \(6\text{-}9\) iterates \(|E|\) times per pass. So the total complexity of the loops is \(O(|VE|)\). To retrieve the final output, the \textbf{while} loop iterates at most \(|V|\) times. Hence the overall complexity is \(O(|V|)\) + \(O(|VE|)\) + \(O(|V|)\) = \(O(|VE|)\). Since there are direct flights between any two cities, \(|E| = O(|V|^2)\). Also \(|V| = n\), time complexity is therefore \(O(n^3)\).
 
 \subsection*{Q5.}
 \paragraph{(a).}
-First, we simplify the problem into a longest decreasing subsequence (LDS) problem by sorting. We sort based on the first parameter, i.e. radius, in the descending order. This ensures that we could choose a longest decreasing sequence out of the original unsorted \(n\) boxes, by simply finding the LDS of the sorted sequence. Note that here we cannot solve the LDS based on height purely, since in the case where radius are the same and height are in the descending order, we might mistakenly contribute boxes of the same radius to the LDS. We could avoid this by also sorting based on height, in the ascending order, for the boxes of the same radius, and then find the LDS based on height only.
-Now we can find the LDS by dynamic programming. \\
-\textbf{Sub-problems:} The sub-problems are LDS of the prefixes of the sorted sequence, and the LDS is ended with the last element of the prefix. We also find the length of such LDS. A solution to the original problem would be a longest sequence among all solutions to the sub-problems.\\
+First, we simplify the problem into a longest decreasing subsequence (LDS) problem by sorting. We sort based on the first parameter, i.e. radius, in the descending order. This ensures that we could choose a longest decreasing sequence out of the original unsorted \(n\) boxes, by simply finding the LDS of the sorted sequence. Note that here we cannot solve the LDS based on height purely, since in the case where radius are the same and height are in the descending order, we might mistakenly contribute boxes of the same radius to the LDS. We could avoid this by also sorting the height in the ascending order for the boxes of the same radius, and then find the LDS based on height only.
+Now we can find the LDS of the sorted sequence by dynamic programming. \\
+\textbf{Sub-problems:}\\ The sub-problems are LDS of the prefixes of the sorted sequence, and the LDS is ended with the last element of the prefix. We also find the length of such LDS. A solution to the original problem would be a longest sequence among all solutions to the sub-problems.\\
 \textbf{Relation between sub-problems:}
 \begin{itemize}
      \setlength \itemsep{0em} 
