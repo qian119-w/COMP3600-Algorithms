@@ -93,56 +93,67 @@ Time complexity is \(O(|VE|)\). Line \(1\text{-}3\) initializes all vertices, an
 
 \subsection*{Q5.}
 \paragraph{(a).}
-First, we simplify the problem into a longest decreasing subsequence (LDS) problem by sorting. We sort based on the first parameter, i.e. radius, in the descending order. This ensures that we could choose a longest decreasing sequence out of the original unsorted \(n\) boxes, by simply finding the LDS of the sorted sequence. Note that here we cannot solve the LDS based on height purely, since in the case where radius are the same and height are in the descending order, we might mistakenly contribute boxes of the same radius to the LDS. We could avoid this by also sorting the height in the ascending order for the boxes of the same radius, and then find the LDS based on height only.
+First, we simplify the problem into a longest decreasing subsequence (LDS) problem by sorting. We sort based on the first parameter, i.e. radius, in the descending order. This ensures that we could choose a longest decreasing sequence out of the original unsorted \(n\) boxes, by simply finding the LDS of the sorted list. Note that here we cannot solve the LDS based on height purely, since in the case where radius are the same and height are in the descending order, we might mistakenly contribute boxes of the same radius to the LDS. We could avoid this by also sorting the height in the ascending order for the boxes of the same radius, and then find the LDS based on height only.
 Now we can find the LDS of the sorted sequence by dynamic programming. \\
 \textbf{Sub-problems:}\\
-We use a modified sub-problem to solve the LDS problem in \(O(nlogn)\) time. The sub-problems are LDS of increasing lengths starting from \(1\). We build longer LDS based on the end element of the previous LDS. We would update the end element of LDS of the same lengths to be the smallest as we iterate through the sorted sequence. This ensures that we could build the subsequence the longest possible. The solution to the original problem is the longest LDS we found.\\
+We use a modified sub-problem to solve the LDS in \(O(n\log n)\) time. The sub-problems are decreasing subsequence of varying lengths starting from \(1\). We build longer subsequence based on the end element of the current subsequences. For subsequences of the same lengths, we store the end element that is known to be the largest at the current point of time. This ensures that we could build the subsequence the longest possible. The LDS is the longest subsequence found at the end.\\
 \textbf{Relation between sub-problems:} \\
-Suppose \(dp[1..n]\) is an array that we use to store the end elements of LDS, where \(dp[i]\) stores the end element of LDS of length \(i\). Now if \(P_j = \langle(r_1,h_1), (r_2, h_2), \hdots, (r_j, h_j)\rangle\) is a prefix of the sorted input list, with which we have used to build LDS so far, and if \(dp[1..k]\) where \(k < n\) is the prefix of the array that has been filled. Then for the next element \((r_{j+1}, h_{j+1})\) that we want to build LDS with:
+Suppose \(dp[1..n]\) is an array that we use to store the end elements of LDS, where \(dp[i]\) stores the end element of LDS of length \(i\). Now if \(P_j = \langle(r_1,h_1), (r_2, h_2), \hdots, (r_j, h_j)\rangle\) is a prefix of the sorted input list, with which we have used to build subsequence of different lengths so far, and if \(dp[1..k]\) where \(k < n\) is the prefix of the array that has been filled (meaning that we have found subsequence of length from \(1\) to \(k\)). Then for the next element \((r_{j+1}, h_{j+1})\) that we want to build LDS with:
 \begin{itemize}
      \setlength \itemsep{0em} 
-     \item Update the end element of LDS of length \(m\) where \(m < k\) to be the smallest so far:
-     \begin{equation*}
-          dp[m] = (r_{j+1}, h_{j+1}) \hspace{0.5cm} \text{ if } h_{j+1} > dp[m+1].h\ \land\ \forall l<m.\ dp[l].h > h_{j+1} 
-     \end{equation*}
-     \item Build a longer LDS if it can be appended to the existing longest LDS
+     \item Update the end element of LDS of length \(m\) where \(m \leq k\) to be the largest so far:
+     \begin{align*}
+          dp[m] = (r_{j+1}, h_{j+1}) \hspace{0.5cm} 
+          \text{ if } &h_{j+1} > dp[m].h\\ 
+          &\land\ \forall l\in [1,m-1].\ dp[l].h > h_{j+1}
+     \end{align*}
+     \item Build a longer LDS if it can be appended to the current longest subsequence
      \begin{equation*}
           dp[k+1] = (r_{j+1}, h_{j+1}) \hspace{0.5cm} \text{ if } \forall l\in[1,k].\ dp[l].h > h_{j+1}
      \end{equation*}
 \end{itemize}
  
-\paragraph{(b)} Let \(P\) denote the input list \([(r_1,h_1), (r_2,h_2), \hdots, (r_n,h_n)]\). In the following psuedocode, we access the \(i^{th}\) element in \(P\) by \(P[i]\), and access \(r_i\) by \(P[i].r\) and  \(h_i\) by \(P[i].h\).
+\paragraph{(b)} Let \(P\) denote the input list \([(r_1,h_1), (r_2,h_2), \hdots, (r_n,h_n)]\). \(P_{sorted}\) denotes the input list after sorting. In the following psuedocode, we access the \(i^{th}\) element in \(P_{sorted}\) by \(P_{sorted}[i]\), and access \(r_i\) by \(P_{sorted}[i].r\) and  \(h_i\) by \(P_{sorted}[i].h\). Also, \(prev[1..n]\) is an array where \(prev[i]\) is the index of the predecessor of \(P_{sorted}[i]\) in a decreasing subsequence. \(dp[1..n]\) is an array where \(dp[i]\) is the end element of a subsequence of length \(i\). \(idx[1..n]\) is an array where \(idx[i]\) is the index of the element \(dp[i]\).
 \begin{algorithm}[H]
      \caption{Bottom-up Longest Strictly Decreasing Sequence(\(P\))}
      \begin{algorithmic}[1]
-     \State let \(dp[1..n]\) be an empty array \Comment{\(dp[i]\) stores the length of LDS(\(P_{sorted} [1 .. i]\)) that ends with \(P_{sorted}[i]\)}
-     \State let \(prev[1..n]\) be an empty array \\ \Comment{\(prev[i]\) stores the index of the second last element of LDS(\(P_{sorted} [1 .. i]\))}
-     \State \textbf{MergeSort} (\(P, 1, n\)) \Comment{in descending order based on \(r\)}
+     \State let \(dp[1..n]\) be an empty array 
+     \State let \(prev[1..n]\) be an empty array
+     \State let \(idx[1..n]\) be an empty array
+     \State \textbf{MergeSort} (\(P, 1, n\))
      \For {\(i = 1\) to \(n\)}
-          \State \(dp[i] = 1\)
-          \State \(prev[i] = i\) \Comment{prev of the first element is set to be itself}
-          \For {\(k = 1\) to \(i-1\)}
-               \If{\(P_{sorted}[k].h > P_{sorted}[i].h\) \textbf{and} \(1 + dp[k] > dp[i]\)} 
-                    \State \(dp[i] = 1 + dp[k]\)
-                    \State \(prev[i] = k\)
-               \EndIf
-          \EndFor
+          \State \(prev[i] = \text{Nil}\)
      \EndFor
-     \State int \(l = 0\)
-     \State int \(idx\) 
-     \For{\(i = 1\) to \(n\)}
-          \If {\(dp[i] > l\)}
-               \State \(l = dp[i]\) \Comment{\(l\) is the maximal length of the output sequence}
-               \State \(idx = i\) \Comment{\(idx\) is the index in \(P_{sorted}\) of the last element in the output sequence}
+     \State \(dp[1] = P_{sorted}[1]\) \Comment{initialize the \(dp\) array}
+     \State \(idx[1] = 1\)
+     \State \(length = 1\) \Comment{keep track of the length of the current LDS}
+     \For {\(i = 1\) to \(n\)}
+          \If {\(dp[length].h > P_{sorted}[i].h \)} \Comment{append to the current LDS}
+               \State \(dp[length+1] = P_{sorted}[i]\)
+               \State \(idx[length+1] = i\)
+               \State \(prev[i] = idx[length]\)
+               \State \(length = length + 1\)
+          \Else
+               \State \(k =\) \textbf{BinarySearch} (\(dp, P_{sorted}[i], 1, length\)) \\
+               \Comment{return the index of largest element \(\leq P_{sorted}[i].h\) in \(dp[1..length]\)}
+               \If {\(dp[k].h < P_{sorted}[i].h\)}
+                    \State \(dp[k] = P_{sorted}[i]\) \Comment{update the largest end element}
+                    \State \(idx[k] = i\)
+                    \If {\(k > 1\)} \Comment{first element in a subsequence has no predecessor}
+                         \State \(prev[i] = idx[k-1]\)
+                    \EndIf
+               \EndIf
           \EndIf
      \EndFor
-     \State let \(O[1..l]\) be the output sequence
-     \While {\(idx \neq prev[idx]\)}
-          \State \(O[l] = P_{sorted}[idx]\)
-          \State \(idx = prev[idx]\)
+     \State let \(O[1..length]\) be the output sequence
+     \State \(i = idx[length]\) \Comment{index of the last element of the LDS}
+     \State \(l = length\)
+     \While {\(prev[i] \neq \text{Nil}\)} \Comment{restore the LDS backwards}
+          \State \(O[l] = P_{sorted}[i]\)
+          \State \(i = prev[i]\)
           \State \(l = l - 1\)
      \EndWhile
-     \State \(O[l] = P_{sorted}[idx]\)
+     \State \(O[l] = P_{sorted}[i]\)
      \State \Return \(O\)
      \end{algorithmic}
 \end{algorithm}
@@ -161,11 +172,11 @@ Suppose \(dp[1..n]\) is an array that we use to store the end elements of LDS, w
           \State \(L[n_1+1] = \infty\); \(R[n_2+1] = \infty\)
           \State \(i = 1\); \(j = 1\)
           \For {\(k = p\) to \(r\)}
-               \If {\(L[i].r > R[i].r\)} \Comment{\textbf{modification from here onwards}}
+               \If {\(L[i].r > R[i].r\)}  \Comment{descending order based on \(r\)}
                     \State \(P[k] = L[i]\)
                     \State \(i = i + 1\)
                \ElsIf {\(L[i].r = R[i].r\)}
-                    \If {\(L[i].h \leq R[i].h\)}
+                    \If {\(L[i].h \leq R[i].h\)} \Comment{then ascending order based on \(h\)}
                          \State \(P[k] = L[i]\)
                          \State \(i = i + 1\)
                     \Else 
@@ -179,8 +190,29 @@ Suppose \(dp[1..n]\) is an array that we use to store the end elements of LDS, w
           \EndFor
      \end{algorithmic}
 \end{algorithm}
+\noindent BinarySearch on a sorted descending array \(A\) that returns the index of largest element smaller than or equal to the target \(k\), assuming that \(k\) is within the range of \(A\), is as follows:
+\begin{algorithm}[H]
+     \caption{BinarySearch (A, k, p, q)}
+     \begin{algorithmic}[1]
+          \While {\(p \leq q\)}
+               \State \(mid = \lfloor\frac{p+q}{2}\rfloor\)
+               \If {\(A[mid].h = k.h\)} \Comment{comparison based on height}
+                    \State \textbf{Return} \(mid\)
+               \ElsIf {\(A[mid].h > k.h\)}
+                    \State \(p = mid+1\)
+               \Else 
+                    \If {\(mid = p\)}
+                         \State \textbf{Return} \(mid\)
+                    \EndIf
+                    \State \(q = mid\)
+               \EndIf
+          \EndWhile
+          \State \textbf{Return} Nil
+     \end{algorithmic}
+\end{algorithm}
 
-\paragraph{(c).} Time complexity is \(O(n^2)\). The merge sort takes \(O(n\log n)\). The computation of LDS that ends with each element of \(P_{sorted}\) requires two for loops (line \(3-12\)). The outer loop iterates through each element of the sorted sequence (\(n\) times), and the inner loop searches through all previous computed LDS. The total number of operations at line \(6\) is therefore \(\sum_{i=1}^n i-1 = \frac{n(n-1)}{2} = O(n^2)\). The loop body is just constant time operations, so the total cost is \(O(n^2)\). Line \(15-20\) searches for the longest sequence among all LDS sub-problems. This takes another \(O(n)\) time. Line \(21-28\) outputs the sequence by tracing from the last element to the first. This takes at most \(O(n)\) time since the sequence is at most of length \(n\). The total time complexity would therefore be \(O(n\log n) + O(n^2) + O(n) + O(n) = O(n^2)\).
+
+\paragraph{(c).} Time complexity is \(O(n\log n)\). We first perform mergesort on the input list which takes \(O(n\log n)\) time. Then line \(10\text{-}23\) builds the subsequences by iterating through the sorted input list. For each iteration, we either append the element to the current LDS, or perform a binary search to find the position in \(dp\) array to update the end element. Binary search takes \(O(n)\) since subsequences will at most be length \(n\), and in fact it is never \(n\) if we need to update the end element of established subsequences. We can perform binary search at most \(n\) times, so the cost for building LDS is \(O(n\log n)\). In fact if we need to update end element \(n\) times, we can never build longer subsequences than length \(1\). So the cost will definitely be in \(O(n\log n)\).
 
 \subsection*{Q6.}
 \paragraph{(a).} Given that \(k_i\) is the number of proposals for the \(i^{th}\) approach, and \(m_{ij}\) is the funding requested for the \(j^{th}\) proposal for the \(i^{th}\) approach, where \(j \in [1, k_i]\). The following algorithm relies heavily on the assumption that all \(m_{ij}\) are integer numbers, and assuming this is allowed in the problem specification. We would use a \(dp\) table to compute the choices of proposals. In the following psuedocode, entry \(dp[i][j]\) is a pair of values \(\langle x,y\rangle\) where \(x\) is a funding sum (potentially many possibilities) requested by the previous (\(i-1\)) approaches, given that \(j\) is the exact funding requested by all \(i\) approaches; and the second value \(y\) is the corresponding index of the proposal for the \(i^{th}\) approach such that \(x\) + \(m_{iy}\) = \(j\). If there is no set of proposals for the first \(i\) approaches that sum to \(j\) exactly, \(dp[i][j]\) would be \(\langle 0,0\rangle\). The reason for keeping the fund sum of the previous \((i-1)\) proposals is to trace the selected proposals backwards at the end.
