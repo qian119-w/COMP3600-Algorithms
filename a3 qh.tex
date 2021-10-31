@@ -95,25 +95,20 @@ Time complexity is \(O(|VE|)\). Line \(1\text{-}3\) initializes all vertices, an
 \paragraph{(a).}
 First, we simplify the problem into a longest decreasing subsequence (LDS) problem by sorting. We sort based on the first parameter, i.e. radius, in the descending order. This ensures that we could choose a longest decreasing sequence out of the original unsorted \(n\) boxes, by simply finding the LDS of the sorted sequence. Note that here we cannot solve the LDS based on height purely, since in the case where radius are the same and height are in the descending order, we might mistakenly contribute boxes of the same radius to the LDS. We could avoid this by also sorting the height in the ascending order for the boxes of the same radius, and then find the LDS based on height only.
 Now we can find the LDS of the sorted sequence by dynamic programming. \\
-\textbf{Sub-problems:}\\ The sub-problems are LDS of the prefixes of the sorted sequence, and the LDS is ended with the last element of the prefix. We also find the length of such LDS. A solution to the original problem would be a longest sequence among all solutions to the sub-problems.\\
-\textbf{Relation between sub-problems:}
+\textbf{Sub-problems:}\\
+We use a modified sub-problem to solve the LDS problem in \(O(nlogn)\) time. The sub-problems are LDS of increasing lengths starting from \(1\). We build longer LDS based on the end element of the previous LDS. We would update the end element of LDS of the same lengths to be the smallest as we iterate through the sorted sequence. This ensures that we could build the subsequence the longest possible. The solution to the original problem is the longest LDS we found.\\
+\textbf{Relation between sub-problems:} \\
+Suppose \(dp[1..n]\) is an array that we use to store the end elements of LDS, where \(dp[i]\) stores the end element of LDS of length \(i\). Now if \(P_j = \langle(r_1,h_1), (r_2, h_2), \hdots, (r_j, h_j)\rangle\) is a prefix of the sorted input list, with which we have used to build LDS so far, and if \(dp[1..k]\) where \(k < n\) is the prefix of the array that has been filled. Then for the next element \((r_{j+1}, h_{j+1})\) that we want to build LDS with:
 \begin{itemize}
      \setlength \itemsep{0em} 
-     \item On LDS:\\
-     Suppose \(P_i = \langle(r_1,h_1), (r_2, h_2), \hdots, (r_i, h_i)\rangle\) is the sequence that is sorted as described above, then a LDS that ends with the element \((r_i, h_i)\), is built from a LDS that ends with \((r_k, h_k)\) for \(k \in [1, i-1]\) where \(h_k > h_i\). There could be multiple \(k\)'s that form the LDS of \(P_i\). Or if such \(k\) does not exist, then the LDS is \(\langle(r_i, h_i)\rangle\). Expressed as a formula, 
+     \item Update the end element of LDS of length \(m\) where \(m < k\) to be the smallest so far:
      \begin{equation*}
-          \text{LDS(\(P_i\))} = \text{longest}(\langle(r_i, h_i)\rangle, \underset{\substack{k \in [1, i-1] \\ h_k > h_i}}{\text{longest}}(\text{LDS(\(P_k\))} + \langle(r_i, h_i)\rangle)
+          dp[m] = (r_{j+1}, h_{j+1}) \hspace{0.5cm} \text{ if } h_{j+1} > dp[m+1].h\ \land\ \forall l<m.\ dp[l].h > h_{j+1} 
      \end{equation*}
-   Here \('+'\) is the concatenation of two sequences, and \(P_k\) is the slice \(P_i\)[\(1 .. k\)].
-     \item On the length of LDS:
+     \item Build a longer LDS if it can be appended to the existing longest LDS
      \begin{equation*}
-          dp[i] = 
-          \begin{cases}
-               1 & i = 1 \\
-               \max (1, \displaystyle\max_{\substack{k \in [1, i-1] \\  h_k > h_i}}(1 + dp[k])) & i > 1
-          \end{cases}
+          dp[k+1] = (r_{j+1}, h_{j+1}) \hspace{0.5cm} \text{ if } \forall l\in[1,k].\ dp[l].h > h_{j+1}
      \end{equation*}
-     \(dp[i]\) is the length of the LDS of \(P_i\) and the last element of the LDS is \((r_i, h_i)\)
 \end{itemize}
  
 \paragraph{(b)} Let \(P\) denote the input list \([(r_1,h_1), (r_2,h_2), \hdots, (r_n,h_n)]\). In the following psuedocode, we access the \(i^{th}\) element in \(P\) by \(P[i]\), and access \(r_i\) by \(P[i].r\) and  \(h_i\) by \(P[i].h\).
