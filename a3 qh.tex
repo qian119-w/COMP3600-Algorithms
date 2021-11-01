@@ -12,6 +12,8 @@
 \usepackage{csquotes}
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
+\bibliographystyle{plain}
+\usepackage[hyphens,spaces]{url}
 
 \begin{document}
 \subsection*{Q1.}
@@ -50,53 +52,94 @@ An avl tree is a self balancing binary search tree that has the property that, f
 
 \subsection*{Q4.}
 \paragraph{(a).} Yes, we can solve it by dynamic programming.\\ 
-Since the flat fee \(C\) remains constant for any sequence, we can just focus on the cost sum of flights in the sequence. The problem is therefore reduced to the normal SSSP problem.\\
-\textbf{Sub-problems:} cheapest sequence to travel from city-\(i\) to city-\(x\) using at most \(k\) hops where \(k \in [1, n-1]\) and \(x \in [1, n]\), \(x \neq i\). We have to search the cheapest sequence for all cities despite that the problem only asks for the case when destination is city-\(n\). This is because the subsequence of a cheapest sequence to city-\(n\) is also a cheapest sequence on its own.
+Since the flat fee \(C\) remains constant for any sequence, we can just focus on the cost sum of flights in the sequence. In addition, since we need to find the cheapest sequence from any city-\(i\) to city-\(n\), the problem can be generalized to an all pairs shortest paths problem. We have to find cheapest sequence for all pairs, despite that the problem only asks for \((i,n)\). This is because the subsequence of a cheapest sequence is also a cheapest sequence by itself. We need to construct a cheapest-sequence tree (similar to shortest-path tree) for the ease of restoring sequences at the end. This algorithm will only need to be run quarterly when the prices of direct flights changed. After that, we can simply answer customers' queries by looking up the cheapest-sequence tree. The underlying algorithm is Floyd-Warshall algorithm.
 
 \pagebreak
-\noindent \textbf{Relation between sub-problems:}\\
-Let \(E\) denote the set of all direct flights between cities and \((u,v) \in E\) if there is a direct flight from city-\(u\) to city-\(v\). Let \(d_k(i,u)\) denote the lowest cost from city-\(i\) to city-\(u\) using at most \(k\) hops. \(P(u,v)\) is the cost of the direct flight from \(u\) to \(v\).
-\begin{equation*}
-     d_k(i,v) = \underset{(u,v) \in E}{\min} (d_{k-1}(i,u)+ P(u,v))
-\end{equation*}
-\paragraph{(b).} We use a bottom up approach to find the cheaptest sequence and its cost. To do so, we first represent the problem by constructing a graph \(G\). Each city is a vertex, and we draw a directed edge \((u,v)\) if there is a direct flight from city-\(u\) to city-\(v\). The cost function is \(P\) that takes two cities as input and return the price of the flight. The source city is \(s\), and the destination city in the sequence we look for is \(d\). We maintain the cheapest cost to travel from source \(s\) to vertex \(v\) by \(v.c\) and the precedessor of vertex \(v\) by \(v.\pi\). The underlying algorithm is the Bellman-Ford algorithm. To find the solution to the original problem, we would call Cheapest Sequence (\(G,P,i,n\)).
+\noindent\textbf{Sub-problems:} cheapest sequence to travel from city-\(i\) to city-\(j\) where \(i,j \in [1,n]\) using intermediate cities from the set \(\{1, \hdots, k\}\), and its length.\\
+\textbf{Relation between sub-problems:}\\
+ To build the cheapest sequence from city-\(i\) to city-\(j\) when the intermediate cities are taken from the set \(\{1, \hdots, k\}\), we notice that the sequence can either go through city-\(k\), or it does not. If it does, then the subsequences from city-\(i\) to city-\(k\), and from city-\(k\) to city-\(j\) would have intermediate cities taken from the set \(\{1, \hdots, k-1\}\). If it does not, then the sequence itself would have intermediate cities from \(\{1, \hdots, k-1\}\). Written as formulas,
+\begin{itemize}
+     \item On minimum cost:
+     \begin{equation*}
+          C_k (i,j) =
+          \begin{cases}
+               P(i, j) & k=0 \\
+               \min (C_{k-1} (i, j), C_{k-1} (i, k) + C_{k-1} (k, j)) & k \geq 1
+          \end{cases}
+     \end{equation*}
+     where \(C_k (i,j)\) denotes the minimum cost for travelling from city-\(i\) to city-\(j\) when the intermediate cities are from the set \(\{1, \hdots, k\}\)\\
+     \(P(i,j)\) denotes the price of direct flight from city-\(i\) to city-\(j\). If there is no direct flight between two cities, the price would be \(\infty\).
+     \item On cheapest sequence:\\
+     For a pair of source and destination cities \((i, j)\), we store the next city of city-\(i\) on the cheapest sequence.
+     \begin{equation*}
+          N_k{(i,j)} =
+          \begin{cases}
+               j & \text{if } P(i, j) \neq \infty \land k=0\\
+               N_{k-1} (i,j) & \text{if } C_{k-1} (i, j) < C_{k-1} (i, k) + C_{k-1} (k, j) \land k \geq 1 \\
+               N_{k-1} (i,k) & \text{otherwise } \land k \geq 1
+          \end{cases}
+     \end{equation*}
+     where \(N_k{(i,j)}\) is the next city of city-\(i\) on a cheapest sequence with intermediate cities taken from the set \(\{1, \hdots, k\}\)
+\end{itemize}
+\paragraph{(b).} We use a bottom up approach to find the cheapest sequence and its cost for all pair of cities. To do so, we first represent the problem by constructing a graph \(G\). Each city is a vertex, and we draw a directed edge \((i,j)\) if there is a direct flight from city-\(i\) to city-\(j\). The cost function is \(P\) that takes two cities as input and return the price of the flight. \(C[1..n][1..n]\) is the output table that stores the minimum costs. \(O[1..n][1..n]\) is the output table that stores the cheapest-sequence tree. 
 \begin{algorithm}[H]
-     \caption{Cheapest Sequence (\(G, P, s, d\))} 
+     \caption{All Pairs Cheapest Sequence (\(G, P\))}
      \begin{algorithmic}[1]
-          \For {each vertex \(v \in G.V\)}
-               \State \(v.c = \infty\)
-               \State \(v.\pi = \text{Nil}\)
-          \EndFor
-          \State \(s.c = 0\) \Comment{initialize source}
-          \For {\(i = 1\) to \(|G.V| - 1\)}
-               \For {each edge \((u,v) \in G.E\)}
-                    \If {\(v.c > u.c + P(u,v)\)}
-                         \State \(v.c = u.c + P(u,v)\)
-                         \State \(v.\pi = u\)
-                    \EndIf
+          \State let \(C[1..n][1..n]\) be the minimum cost table
+          \State let \(O[1..n][1..n]\) be the cheapest sequence table
+          \For {\(i = 1\) to \(n\)} \Comment{initialization}
+               \For {\(j = 1\) to \(n\)}
+                    \State \(C[i][j] = \infty\)
+                    \State \(O[i][j] = \text{Nil}\)
                \EndFor
           \EndFor
-          \State Find the vertex \(x\) that represents city-\(d\)
-          \State \(v = x\) \Comment{we are going to trace the sequence backwards}
-          \State Declare an empty linked list \(L\) \Comment{used to output the cheapest sequence}
-          \While {\(v.\pi \neq \text{Nil}\)} \Comment{loop terminates when \(v=s\), since \(s.\pi = \text{Nil}\)}
-               \State prepend (\(L, v\))
-               \State \(v = v.\pi\)
+          \For {each edge \((i,j) \in G.E\)}
+               \State \(C[i][j] = P(i,j)\)
+               \State \(O[i][j] = j\)
+          \EndFor
+          \For {\(i = 1\) to \(n\)}
+               \State \(C[i][i] = 0\)
+               \State \(O[i][i] = i\)
+          \EndFor
+          \For {\(k = 1\) to \(n\)}
+               \For {\(i = 1\) to \(n\)}
+                    \For {\(j = 1\) to \(n\)}
+                         \If{\(C[i][j] > C[i][k] + C[k][j]\)}
+                              \State \(C[i][j] = C[i][k] + C[k][j]\)
+                              \State \(O[i][j] = O[i][k]\)
+                         \EndIf
+                    \EndFor
+               \EndFor
+          \EndFor
+          \State \textbf{Return} \(C, O\)
+     \end{algorithmic}
+\end{algorithm} 
+\noindent To answer customers' queries on the cheapest sequence from city-\(i\) to city-\(n\) and its cost, call Find Sequence \((C,O,i,n)\)
+\begin{algorithm}[H]
+     \caption{Find Sequence \((C, O, u, v)\)}
+     \begin{algorithmic}[1]
+          \If {\(O[u,v] = \text{Nil}\)}
+               \State \textbf{Return} No Sequence
+          \EndIf
+          \State let \(l\) be the output list that contains the cheapest sequence
+          \State \(l = [u]\)
+          \While{\(u \neq v\)}
+               \State \(u = O[u][v]\)
+               \State \(l.\)append(\(u\))
           \EndWhile
-          \State prepend (\(L, s\))
-          \State \textbf{Return} \(L\)
+          \State \textbf{Return} \(l, C[u,v]\)
      \end{algorithmic}
 \end{algorithm}
 
 \paragraph{(c).}
-Time complexity is \(O(|VE|)\). Line \(1\text{-}3\) initializes all vertices, and this takes \(O(|V|)\) time. The outer \textbf{for} loop of line \(5\text{-}9\) iterates \(|V|-1\) times. The nested \textbf{for} loop of line \(6\text{-}9\) iterates \(|E|\) times per pass. So the total complexity of the loops is \(O(|VE|)\). To retrieve the final output, the \textbf{while} loop iterates at most \(|V|\) times. Hence the overall complexity is \(O(|V|)\) + \(O(|VE|)\) + \(O(|V|)\) = \(O(|VE|)\). Since there could be direct flights between any two cities, \(|E| = O(|V|^2)\). Also \(|V| = n\), time complexity is therefore \(O(n^3)\).
+Time complexity is \(O(n^3)\). The Floyd-Warshall algorithm has 3 \textbf{for} loops on line\(13\)-\(18\). The outermost \textbf{for} loop iterates on \(k\) which gradually builds cheapest sequences based on the set of intermediate cities \{\(1..k\)\} until \(k = n\). The two inner \textbf{for} loops iterates over all pairs of cities to build sequences for them. The initialization on line\(3\)-\(6\) is \(O(n^2)\). The time to initialize the costs and successor cities for \(k=0\) on line\(7\)-\(12\) is \(O(n^2)\). This is because in the worst case, cities are fully connected, and the number of edges is \(n \times (n-1) = O(n^2)\). This algorithm is only required to run once per quarter when the price of direct flights changes. To reconstruct the sequence by looking up the table, we only need \(O(n)\) time since there can at most be \(n\) cities in a cheapest sequence (no repeated cities, i.e. no cycles). Hence, at other times when prices do not change, we only need \(O(n)\) time to find the cheapest sequence. Otherwise, we need to both reconstruct the table and find the sequence, which is in total \(O(n^3)\) time.
 
 \subsection*{Q5.}
 \paragraph{(a).}
 First, we simplify the problem into a longest decreasing subsequence (LDS) problem by sorting. We sort based on the first parameter, i.e. radius, in the descending order. This ensures that we could choose a longest decreasing sequence out of the original unsorted \(n\) boxes, by simply finding the LDS of the sorted list. Note that here we cannot solve the LDS based on height purely, since in the case where radius are the same and height are in the descending order, we might mistakenly contribute boxes of the same radius to the LDS. We could avoid this by also sorting the height in the ascending order for the boxes of the same radius, and then find the LDS based on height only.
 Now we can find the LDS of the sorted sequence by dynamic programming. \\
 \textbf{Sub-problems:}\\
-We use a modified sub-problem to solve the LDS in \(O(n\log n)\) time. The sub-problems are decreasing subsequence of varying lengths starting from \(1\). We build longer subsequence based on the end element of the current subsequences. For subsequences of the same lengths, we store the end element that is known to be the largest at the current point of time. This ensures that we could build the subsequence the longest possible. The LDS is the longest subsequence found at the end.\\
+We use a modified sub-problem \cite{OMS}  to solve the LDS in \(O(n\log n)\) time. The sub-problems are decreasing subsequence of varying lengths starting from \(1\). We build longer subsequence based on the end element of the current subsequences. For subsequences of the same lengths, we store the end element that is known to be the largest at the current point of time. This ensures that we could build the subsequence the longest possible. The LDS is the longest subsequence found at the end.\\
 \textbf{Relation between sub-problems:} \\
 Suppose \(dp[1..n]\) is an array that we use to store the end elements of LDS, where \(dp[i]\) stores the end element of LDS of length \(i\). Now if \(P_j = \langle(r_1,h_1), (r_2, h_2), \hdots, (r_j, h_j)\rangle\) is a prefix of the sorted input list, with which we have used to build subsequence of different lengths so far, and if \(dp[1..k]\) where \(k < n\) is the prefix of the array that has been filled (meaning that we have found subsequence of length from \(1\) to \(k\)). Then for the next element \((r_{j+1}, h_{j+1})\) that we want to build LDS with:
 \begin{itemize}
@@ -261,5 +304,7 @@ Empirical analysis:
      \includegraphics[width = \textwidth]{q6d.png}
 \end{figure}
 \noindent This plotted graph is based on a data set of 100 samples. We observe a linear relationship between the time taken in \(ms\), and the number  (\(F \times \sum_{i=1}^n k_i\)). The best fit line has a \(R^2\) coefficient of \(0.975\), which means that the linear model fits the data set well. Hence, we could conclude that the time complexity of the algorithm is some constant times \(F \times \sum_{i=1}^n k_i\), and hence there is \(c, n_0 > 0\) such that \(T(n) \leq c(F\times \sum_{i=1}^n k_i)\) for all \(n \geq n_0\). Time complexiy is therefore \(O(F \times \sum_{i=1}^n k_i)\) and the empirical analysis matches with our theoretical analysis. 
+
+\bibliography{citation}
 
 \end{document}
