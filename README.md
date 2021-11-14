@@ -1,2 +1,2 @@
-# 3600-a3_
-## assignment 3 repository for 3600 Algorithms
+# 3600-a3
+- include the source codes and pdf file for a3
